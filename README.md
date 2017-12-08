@@ -1,7 +1,5 @@
 # Particle-System
 
-Simple particle system modelling fire and steam.
-
 Needs installation fo the SOIL library:
 
 sudo apt-get install libsoil-dev
