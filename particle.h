@@ -65,6 +65,6 @@ double wind_u_component;
 double wind_v_component;
 double emission_size;
 double point_size;
-double framesPerSecond;
+double framesPerSecond, frameTime;
 int counter, start, end;
 char string[50];

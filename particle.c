@@ -7,7 +7,7 @@
  * 
  */
 #include "particle.h"
-#include "keyboard_and_display.h"
+#include "options_and_statistics.h"
 
 // Return random double within range [-a,a].
 // Uniform random distribution.
@@ -165,6 +165,7 @@ void display()
   moveParticles();
   glutPostRedisplay();
   printDataOnScreen();
+  calculateFrameRate();
   glutSwapBuffers();
 } // display
 
