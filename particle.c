@@ -32,61 +32,78 @@ double normalDistribution(double mean, double std)
 } // normalDistribution
 
 // Draw the particle system.
-void drawParticles(void)
+void drawParticles()
 {
   int i;
 
-  for(i = smoke.alive_no_of_particles; i < smoke.total_no_of_particles; i++)
+  for(i = fire.alive_no_of_particles; i < fire.total_no_of_particles; i++)
   {
     // Set the emission point for each particle
-    smoke.particles[i].x = EMISSION_SOURCE_X + myRandom(emission_size);
-    smoke.particles[i].y = EMISSION_SOURCE_Y;
-    smoke.particles[i].z = EMISSION_SOURCE_Z + myRandom(emission_size);
+    fire.particles[i].x = EMISSION_SOURCE_X + myRandom(emission_size);
+    fire.particles[i].y = EMISSION_SOURCE_Y;
+    fire.particles[i].z = EMISSION_SOURCE_Z + myRandom(emission_size);
 
     // Set the velocity of each particle
-    smoke.particles[i].x_velocity = 0.0;
-    smoke.particles[i].y_velocity = normalDistribution(SPEED_MEAN, SPEED_VAR);
-    smoke.particles[i].z_velocity = 0.0;
+    fire.particles[i].x_velocity = 0.0;
+    fire.particles[i].y_velocity = normalDistribution(SPEED_MEAN, SPEED_VAR);
+    fire.particles[i].z_velocity = 0.0;
 
     // Set the colour of each particle
-    smoke.particles[i].r = normalDistribution(smoke.r, SHADE_VAR);
-    smoke.particles[i].g = normalDistribution(smoke.g, SHADE_VAR);
-    smoke.particles[i].b = normalDistribution(smoke.b, SHADE_VAR);
-    //smoke.particles[i].a = gaussianDistribution(ALPHA_MEAN, ALPHA_VAR);
-    smoke.alive_no_of_particles++;
+    fire.particles[i].r = normalDistribution(fire.r, SHADE_VAR);
+    fire.particles[i].g = normalDistribution(fire.g, SHADE_VAR);
+    fire.particles[i].b = normalDistribution(fire.b, SHADE_VAR);
+    fire.particles[i].a = normalDistribution(ALPHA_MEAN, ALPHA_VAR);
+    fire.alive_no_of_particles++;
   } // for
 
   if(render_as_point)
   {
     glBegin(GL_POINTS);
-    for(i = 0; i < smoke.alive_no_of_particles; i++)
+    for(i = 0; i < fire.alive_no_of_particles; i++)
     {
-      glColor3f(smoke.particles[i].r, 
-                smoke.particles[i].g, 
-                smoke.particles[i].b);
-      glVertex3f(smoke.particles[i].x, 
-                 smoke.particles[i].y,
-                 smoke.particles[i].z);
+      glColor3f(fire.particles[i].r, 
+                fire.particles[i].g, 
+                fire.particles[i].b);
+      glVertex3f(fire.particles[i].x, 
+                 fire.particles[i].y,
+                 fire.particles[i].z);
     } // for
     glEnd();
   } // if
-  else
+  else if(render_as_lines)
   {
-    glLineWidth(2.5);
     glBegin(GL_LINES);
-    for(i = 0; i < smoke.alive_no_of_particles; i++)
+    for(i = 0; i < fire.alive_no_of_particles; i++)
     {
-      glColor3f(smoke.particles[i].r, 
-                smoke.particles[i].g, 
-                smoke.particles[i].b);
-      glVertex3f(smoke.particles[i].x, 
-                 smoke.particles[i].y,
-                 smoke.particles[i].z);
-      glVertex3f(smoke.particles[i].x + 2.0 * smoke.particles[i].x_velocity, 
-                 smoke.particles[i].y + 2.0 * smoke.particles[i].y_velocity,
-                 smoke.particles[i].z + 2.0 * smoke.particles[i].z_velocity);
+      glColor3f(fire.particles[i].r, 
+                fire.particles[i].g, 
+                fire.particles[i].b);
+      glVertex3f(fire.particles[i].x, 
+                 fire.particles[i].y,
+                 fire.particles[i].z);
+      glVertex3f(fire.particles[i].x + 5.0 * fire.particles[i].x_velocity, 
+                 fire.particles[i].y + 5.0 * fire.particles[i].y_velocity,
+                 fire.particles[i].z + 5.0 * fire.particles[i].z_velocity);
     } // for
     glEnd();
+  } // else
+  else if (render_as_texture)
+  {
+    glEnable(GL_POINT_SPRITE);
+    glEnable(GL_TEXTURE_2D);
+    for (i = 0; i < fire.alive_no_of_particles; i++) 
+    {
+    	if(explosion)
+    		glBindTexture(GL_TEXTURE_2D, explosion_texture);
+    	if(steam)
+      	glBindTexture(GL_TEXTURE_2D, steam_textures[i % 9]);
+      glBegin(GL_POINTS);
+      glColor4f(fire.particles[i].r, fire.particles[i].g, fire.particles[i].b, fire.particles[i].a);
+      glVertex3f(fire.particles[i].x, fire.particles[i].y, fire.particles[i].z);
+      glEnd();
+    } // for
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_POINT_SPRITE);
   } // else
 } // drawParticles
 
@@ -94,42 +111,43 @@ void drawParticles(void)
 void moveParticles() 
 {
   int i;
-  for (i = 0; i < smoke.alive_no_of_particles; i++) 
+  for (i = 0; i < fire.alive_no_of_particles; i++) 
   {
-    if (((smoke.r - smoke.particles[i].r) > lifetime)
-     && ((smoke.g - smoke.particles[i].g) > lifetime)
-     && ((smoke.b - smoke.particles[i].b) > lifetime))   
+    if ((((fire.r - fire.particles[i].r) > lifetime)
+     && ((fire.g - fire.particles[i].g) > lifetime)
+     && ((fire.b - fire.particles[i].b) > lifetime))
+     || (fire.particles[i].a < ALPHA_LIFETIME))
     {
-      smoke.particles[i] = smoke.particles[smoke.alive_no_of_particles - 1];
-      smoke.alive_no_of_particles--;
+      fire.particles[i] = fire.particles[fire.alive_no_of_particles - 1];
+      fire.alive_no_of_particles--;
     } // if
     else // if the particle is still alive, move it
     {
-      smoke.particles[i].x += smoke.particles[i].x_velocity;
-      smoke.particles[i].y += smoke.particles[i].y_velocity;
-      smoke.particles[i].z += smoke.particles[i].z_velocity;
+      fire.particles[i].x += fire.particles[i].x_velocity;
+      fire.particles[i].y += fire.particles[i].y_velocity;
+      fire.particles[i].z += fire.particles[i].z_velocity;
 
-      if(smoke.particles[i].y < EMISSION_SOURCE_Y)
-        smoke.particles[i].y = EMISSION_SOURCE_Y;
+      if(fire.particles[i].y < EMISSION_SOURCE_Y)
+        fire.particles[i].y = EMISSION_SOURCE_Y;
 
       // Modify the velocity of each (relevant) component
-      smoke.particles[i].x_velocity += windSpeed * wind_u_component; 
-      smoke.particles[i].y_velocity += windSpeed * wind_v_component;
-      smoke.particles[i].z_velocity += mass * gravity;
+      fire.particles[i].x_velocity += windSpeed * wind_u_component; 
+      fire.particles[i].y_velocity += windSpeed * wind_v_component;
+      fire.particles[i].z_velocity += mass * gravity;
       if (add_randomness)
       {
-    		smoke.particles[i].x_velocity += normalDistribution(RANDOM_DIRECTION_MEAN, RANDOM_DIRECTION_VAR);
-      	smoke.particles[i].z_velocity += normalDistribution(RANDOM_DIRECTION_MEAN, RANDOM_DIRECTION_VAR);
+    		fire.particles[i].x_velocity += normalDistribution(RANDOM_DIRECTION_MEAN, RANDOM_DIRECTION_VAR);
+      	fire.particles[i].z_velocity += normalDistribution(RANDOM_DIRECTION_MEAN, RANDOM_DIRECTION_VAR);
       }
 
       // Decrease the intensity of the colour at each step
       double decrease_amount = 0.0001;
       double shadeChange;
       shadeChange = normalDistribution(COLOUR_MEAN, COLOUR_VAR);
-      smoke.particles[i].r -= shadeChange;
-      smoke.particles[i].g -= shadeChange;
-      smoke.particles[i].b -= shadeChange;
-      //smoke.particles[i].a -= decrease_amount;
+      fire.particles[i].r -= shadeChange;
+      fire.particles[i].g -= shadeChange;
+      fire.particles[i].b -= shadeChange;
+      fire.particles[i].a -= decrease_amount;
     } // else
   } // for
 } // moveParticle
@@ -165,16 +183,23 @@ void reshape(int width, int height)
 // Also used when first initializign the system.
 void resetSimulation()
 {
-  smoke.alive_no_of_particles = 0;
-  smoke.total_no_of_particles = PARTICLES;
-  smoke.r = 0.9;
-  smoke.g = 0.6;
-  smoke.b = 0.3;
+  fire.alive_no_of_particles = 0;
+  fire.total_no_of_particles = PARTICLES;
+  fire.r = 0.9;
+  fire.g = 0.6;
+  fire.b = 0.3;
   gravity = GRAVITY;
   mass = MASS;
-  render_as_point = 1;
+  render_as_point = 0;
+  render_as_lines = 0;
+  render_as_texture = 1;
+  explosion = 1;
+  steam = 0;
   add_randomness = 0;
-  point_size = POINT_SIZE;
+  if(render_as_point)
+  	point_size = POINT_SIZE;
+  if(render_as_texture)
+  	point_size = TEXTURE_POINT_SIZE;
   glPointSize(point_size);
   emission_size = EMISSION_SIZE;
   lifetime = LIVING_THRESHOLD;
@@ -189,12 +214,50 @@ void menu (int selection) {
   switch (selection) 
   {
     // Reset parameters to starting values
-    case 1: resetSimulation(); break;
-    case 2: render_as_point = 1; break;
-    case 3: render_as_point = 0; break;
-    case 4: add_randomness = !add_randomness; break;
-    case 5: displayMenu(); break;
-    case 6: exit(0); break;
+    case 1: 
+    	resetSimulation(); 
+    	break;
+    case 2: 
+    	render_as_point = 1;
+    	point_size = POINT_SIZE;
+    	glPointSize(point_size);
+    	render_as_lines = 0;
+    	render_as_texture = 0;
+    	explosion = steam = 0;
+    	break;
+    case 3: 
+    	render_as_point = 0;
+    	render_as_lines = 1;
+    	render_as_texture = 0;
+    	explosion = steam = 0;
+    	break;
+    case 4: 
+    	render_as_point = 0;
+    	render_as_lines = 0;
+    	render_as_texture = 1;
+    	point_size = TEXTURE_POINT_SIZE;
+    	glPointSize(point_size);
+    	explosion = 1;
+    	steam = 0;
+    	break;
+    case 5: 
+    	render_as_point = 0;
+    	render_as_lines = 0;
+    	render_as_texture = 1;
+    	point_size = TEXTURE_POINT_SIZE;
+    	glPointSize(point_size);
+    	explosion = 0;
+    	steam = 1;
+    	break;
+    case 6:
+    	add_randomness = !add_randomness; 
+    	break;
+    case 7: 
+    	displayMenu(); 
+    	break;
+    case 8: 
+    	exit(0); 
+    	break;
   }
 } // menu
 
@@ -204,10 +267,12 @@ void createMenu()
   glutCreateMenu(menu);
   glutAddMenuEntry("Reset simulation", 1);
   glutAddMenuEntry("Render as point", 2);
-  glutAddMenuEntry("Render as trail", 3);
-  glutAddMenuEntry ("Add randomness", 4);
-  glutAddMenuEntry ("Keyboard options", 5);
-  glutAddMenuEntry ("Quit", 6);
+  glutAddMenuEntry("Render as line", 3);
+  glutAddMenuEntry("Render fire texture", 4);
+  glutAddMenuEntry("Render steam texture", 5);
+  glutAddMenuEntry ("Add randomness", 6);
+  glutAddMenuEntry ("Keyboard options", 7);
+  glutAddMenuEntry ("Quit", 8);
   glutAttachMenu (GLUT_RIGHT_BUTTON);
 } // createMenu
 
@@ -215,7 +280,7 @@ void createMenu()
  void initGraphics(int argc, char *argv[])
 {
   glutInit(&argc, argv);
-  glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+  glutInitWindowSize(800, 600);
   glutInitWindowPosition(100, 100);
   glutInitDisplayMode(GLUT_DOUBLE);
   glutCreateWindow("Particle System - COMP37111");
@@ -225,9 +290,33 @@ void createMenu()
   createMenu();
   glEnable(GL_POINT_SMOOTH);
   glPointSize(point_size);
+
+  // Textures obatined from OpenGameArt.org (see licence in PNG directory)
+  // https://opengameart.org/content/explosion-particles-sprite-atlas
+  // Used SOIL (Simple Graphics Image Library) to load PNG images used as textures
+  // Details: https://www.khronos.org/opengl/wiki/Image_Libraries
+  // and here http://www.lonesock.net/soil.html
+  if(render_as_texture)
+  {
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_POINT_SPRITE);
+    sprintf(string, "PNG/Others/fire3_crop.png");
+    explosion_texture = SOIL_load_OGL_texture(string, SOIL_LOAD_RGBA, 
+                   SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+    int i;
+		for (i = 0; i < 9; i++)
+  	{
+  		sprintf(string, "PNG/Fart/fart0%d.png", i);
+   		steam_textures[i] = SOIL_load_OGL_texture(string, SOIL_LOAD_RGBA, 
+                  				SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+  	} // for
+  } // if
 } // initGraphics
 
-// Main Method
 int main(int argc, char *argv[])
 {
   srand(time(NULL));

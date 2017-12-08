@@ -3,15 +3,15 @@
 #include <time.h>
 #include <math.h>
 #include <float.h>
+#include "SOIL.h"
 #ifdef MACOSX
   #include <GLUT/glut.h>
 #else
   #include <GL/glut.h>
 #endif
 
-#define WINDOW_WIDTH 1450
-#define WINDOW_HEIGHT 800
 #define POINT_SIZE 10
+#define TEXTURE_POINT_SIZE 80
 #define MAX_PARTICLES 1000000
 #define PARTICLES 500
 #define EMISSION_SOURCE_X 0.0
@@ -27,12 +27,13 @@
 #define SPEED_MEAN 0.5
 #define SPEED_VAR 0.1
 #define RANDOM_DIRECTION_MEAN 0.0
-#define RANDOM_DIRECTION_VAR 0.05
+#define RANDOM_DIRECTION_VAR 0.02
 #define COLOUR_MEAN 0.003
 #define COLOUR_VAR 0.007 
 #define SHADE_VAR 0.03
 #define ALPHA_MEAN 0.3
 #define ALPHA_VAR 0.1
+#define ALPHA_LIFETIME 0.00001
 
 typedef struct 
 {
@@ -47,10 +48,12 @@ typedef struct
     int total_no_of_particles;
     int alive_no_of_particles;
     double r, g, b;
-} Smoke;
+} System;
 
-Smoke smoke;
-int render_as_point;
+System fire;
+int render_as_point, render_as_lines, render_as_texture;
+int explosion, steam;
+int explosion_texture, steam_textures[10];
 int add_randomness;
 double lifetime;
 double gravity;

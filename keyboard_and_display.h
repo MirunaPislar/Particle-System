@@ -51,35 +51,35 @@ void keyboard(unsigned char k, int x, int y)
   {
     // Play with the colours of the particle system
     case 'c': 
-    	if (smoke.r - 0.025 >= 0.599)
-        smoke.r = smoke.r - 0.05;
-      if (smoke.g - 0.025 >= 0.299)
-        smoke.g = smoke.g - 0.05;
-      if (smoke.b - 0.025 >= 0.000)
-        smoke.b = smoke.b - 0.025;
-      if(smoke.r > 0.6001 || smoke.g > 0.3001 || smoke.b > 0.0001)
+    	if (fire.r - 0.025 >= 0.599)
+        fire.r = fire.r - 0.05;
+      if (fire.g - 0.025 >= 0.299)
+        fire.g = fire.g - 0.05;
+      if (fire.b - 0.025 >= 0.000)
+        fire.b = fire.b - 0.025;
+      if(fire.r > 0.6001 || fire.g > 0.3001 || fire.b > 0.0001)
       	printf("Decreased RGB colours to r = %f, g = %f, b = %f.\n",
-      					smoke.r, smoke.g, smoke.b);
+      					fire.r, fire.g, fire.b);
       else
       	printf("Cannot change colour further.\n");
       break;
     case 'C':
-    	if (smoke.r + 0.025 <= 1.01)
-        smoke.r = smoke.r + 0.025;
-      if (smoke.g + 0.025 <= 0.91)
-        smoke.g = smoke.g + 0.025;
-      if (smoke.b + 0.025 <= 0.61)
-        smoke.b = smoke.b + 0.025;
-      if(smoke.r < 1.01 || smoke.g < 0.91 || smoke.b < 0.61)
+    	if (fire.r + 0.025 <= 1.01)
+        fire.r = fire.r + 0.025;
+      if (fire.g + 0.025 <= 0.91)
+        fire.g = fire.g + 0.025;
+      if (fire.b + 0.025 <= 0.61)
+        fire.b = fire.b + 0.025;
+      if(fire.r < 1.01 || fire.g < 0.91 || fire.b < 0.61)
       	printf("Increased RGB colours to r = %f, g = %f, b = %f.\n",
-      					smoke.r, smoke.g, smoke.b);
+      					fire.r, fire.g, fire.b);
       else
       	printf("Cannot change colour further.\n");
       break;
 
     // Play with the point size (depending on rendering type)
     case 's': 
-      if (render_as_point)
+      if (render_as_point || render_as_texture)
       {
       	if(point_size > 1)
       	{
@@ -94,7 +94,7 @@ void keyboard(unsigned char k, int x, int y)
     	} // if render as point
     	break;
     case 'S': 
-      if (render_as_point)
+      if (render_as_point || render_as_texture)
       {
       	if(point_size < 100)
       	{
@@ -135,10 +135,10 @@ void keyboard(unsigned char k, int x, int y)
 
     // Play with the no. of particles (add or remove 500 particles at each key press)
     case 'p': 
-      if (smoke.total_no_of_particles >= 1000)
+      if (fire.total_no_of_particles >= 1000)
       {
-        smoke.total_no_of_particles -= 500; 
-        printf("Decreased number of particles to %d\n", smoke.total_no_of_particles);
+        fire.total_no_of_particles -= 500; 
+        printf("Decreased number of particles to %d\n", fire.total_no_of_particles);
       } // if
       else
       {
@@ -146,10 +146,10 @@ void keyboard(unsigned char k, int x, int y)
       } // else
       break;
     case 'P': 
-      if (smoke.total_no_of_particles <= (MAX_PARTICLES - 500))
+      if (fire.total_no_of_particles <= (MAX_PARTICLES - 500))
       {
-      	smoke.total_no_of_particles += 500;
-      	printf("Increased no. of particles to %d\n", smoke.total_no_of_particles);
+      	fire.total_no_of_particles += 500;
+      	printf("Increased no. of particles to %d\n", fire.total_no_of_particles);
       } // if 
       else
       {
@@ -262,24 +262,24 @@ void drawString(void* font, float x, float y, char* str)
 
 void printDataOnScreen()
 {
-  calculateFrameRate();
   glColor3f(1.0, 1.0, 1.0);
   
-  sprintf(string, "FPS: %.2f", framesPerSecond);
-  drawString(GLUT_BITMAP_HELVETICA_12, -450, 500 - 1 * 16, string);
-  
-  sprintf(string, "Number of particles: %d", smoke.total_no_of_particles);
-  drawString(GLUT_BITMAP_HELVETICA_12, -450, 500 - 2 * 16, string);
+  sprintf(string, "Number of particles: %d", fire.total_no_of_particles);
+  drawString(GLUT_BITMAP_9_BY_15, -350, 500 - 1 * 14, string);
   
   sprintf(string, "Wind speed: %.2f m/s", windSpeed);
-  drawString(GLUT_BITMAP_HELVETICA_12, -450, 500 - 3 * 16, string);
+  drawString(GLUT_BITMAP_9_BY_15, -350, 500 - 2 * 14, string);
   
-  sprintf(string, "Angle: %.2f degrees", theta);
-  drawString(GLUT_BITMAP_HELVETICA_12, -450, 500 - 4 * 16, string);
+  sprintf(string, "Wind direction: %.2f degrees", theta);
+  drawString(GLUT_BITMAP_9_BY_15, -350, 500 - 3 * 14, string);
   
   sprintf(string, "Gravity: %.2f m/s^2", gravity);
-  drawString(GLUT_BITMAP_HELVETICA_12, -450, 500 - 5 * 16, string);
+  drawString(GLUT_BITMAP_9_BY_15, -350, 500 - 4 * 14, string);
   
   sprintf(string, "Lifetime: %.2f", lifetime);
-  drawString(GLUT_BITMAP_HELVETICA_12, -450, 500 - 6 * 16, string);
+  drawString(GLUT_BITMAP_9_BY_15, -350, 500 - 5 * 14, string);
+
+  calculateFrameRate();
+  sprintf(string, "Frame Rate: %.2f", framesPerSecond);
+  drawString(GLUT_BITMAP_9_BY_15, -350, 500 - 6 * 14, string);
 } // printDataOnScreen
